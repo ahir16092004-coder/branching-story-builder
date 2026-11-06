@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fork – Write stories where readers choose the path</title>
+<meta name="description" content="Fork is an interactive branching story builder. Write scenes, add choices, publish, and let readers choose their own path.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+<style>
+:root{--bg:#09090d;--bg2:#101017;--card:#14141c;--line:#252533;--tx:#f1f1f7;--mut:#8f8fa6;--ac:#8b5cf6;--ac2:#22c55e;--pk:#ec4899;--bad:#ef4444;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:20;background:rgba(9,9,13,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:10px;height:62px}
+.logo{font-weight:800;font-size:20px;cursor:pointer;display:flex;align-items:center;gap:8px;letter-spacing:-.02em}
+.logo i{font-style:normal;width:32px;height:32px;display:grid;place-items:center;background:linear-gradient(135deg,var(--ac),var(--pk));border-radius:10px;font-size:17px}
+.sp{flex:1}
+.link{background:none;border:0;color:var(--mut);cursor:pointer;font:inherit;padding:8px 10px}.link:hover{color:var(--tx)}
+button{background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:11px;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--ac);transform:translateY(-1px)}
+.pri{background:linear-gradient(135deg,var(--ac),#6d3df0);border-color:transparent;color:#fff;font-weight:600}
+.big{padding:13px 24px;font-size:16px;border-radius:13px}
+.ok{background:var(--ac2);border-color:var(--ac2);color:#04130a;font-weight:600}
+.dan{color:var(--bad)}
+input,textarea,select{width:100%;background:#0c0c12;color:var(--tx);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font:inherit}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--ac);border-color:transparent}
+textarea{min-height:160px;resize:vertical;font-family:Georgia,serif;font-size:16px;line-height:1.7}
+label{display:block;font-size:12px;color:var(--mut);margin:14px 0 5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+/* hero */
+.hero{position:relative;overflow:hidden;text-align:center;padding:90px 0 70px}
+.hero::before,.hero::after{content:"";position:absolute;width:480px;height:480px;border-radius:50%;filter:blur(110px);opacity:.28;z-index:0}
+.hero::before{background:var(--ac);top:-200px;left:8%}.hero::after{background:var(--pk);top:-120px;right:6%}
+.hero .wrap{position:relative;z-index:1}
+.pill{display:inline-block;padding:5px 14px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:99px;font-size:13px;color:var(--mut)}
+.hero h1{font-size:clamp(36px,6vw,66px);line-height:1.08;margin:20px auto 16px;max-width:820px;letter-spacing:-.035em}
+.grad{background:linear-gradient(90deg,#a78bfa,var(--pk),#fbbf24);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);font-size:18px;max-width:600px;margin:0 auto 30px}
+.stats{display:flex;justify-content:center;gap:34px;margin-top:46px;flex-wrap:wrap}
+.stats b{display:block;font-size:30px}.stats span{color:var(--mut);font-size:13px}
+/* tree decoration */
+.tree{display:flex;justify-content:center;margin:44px auto 0;max-width:520px}
+.tree svg{width:100%;height:auto}
+section{padding:54px 0}
+h2.t{font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+.sub{color:var(--mut);margin:0 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;transition:.2s}
+.hov:hover{border-color:var(--ac);transform:translateY(-3px)}
+.step{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:#1d1733;margin-bottom:12px}
+.card h3{margin:0 0 6px;font-size:18px}.mut{color:var(--mut);font-size:14px}
+.tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mut);font-weight:600}
+.tag.pub{color:var(--ac2);border-color:#1e5a38;background:#0e2216}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.empty{text-align:center;padding:54px 20px;border:1px dashed var(--line);border-radius:18px;background:var(--bg2)}
+.empty .em{font-size:44px}
+/* editor */
+.ed{display:grid;grid-template-columns:270px 1fr;gap:18px;margin-top:18px}
+@media(max-width:780px){.ed{grid-template-columns:1fr}}
+.nl{display:flex;flex-direction:column;gap:7px}
+.ni{padding:10px 13px;border:1px solid var(--line);border-radius:11px;cursor:pointer;background:var(--card);font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.ni.on{border-color:var(--ac);background:#1b1530}.ni small{color:var(--mut)}
+.ch{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px}
+@media(max-width:600px){.ch{grid-template-columns:1fr}}
+.warn{background:#2a1515;border:1px solid #5a2323;border-radius:12px;padding:12px 16px;font-size:14px;margin-top:14px}
+.good{background:#10241a;border-color:#1e5a38}
+.chk{display:flex;align-items:center;gap:8px;margin:0!important;text-transform:none!important;font-size:14px!important;letter-spacing:0!important;color:var(--tx)!important;font-weight:400!important}.chk input{width:auto}
+/* reader */
+.reader{max-width:700px;margin:0 auto;padding:36px 0 70px}
+.bar{height:5px;background:var(--line);border-radius:9px;overflow:hidden;margin:14px 0 4px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--pk));transition:.4s}
+.scene{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:34px;margin-top:16px;animation:in .35s}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.scene h2{margin:0 0 14px;font-size:26px}
+.txt{font:19px/1.85 Georgia,serif;white-space:pre-wrap;margin:0 0 26px;color:#e4e4ee}
+.opt{display:block;width:100%;text-align:left;margin-bottom:10px;padding:15px 18px;font-size:16px;border-radius:13px}
+.opt:hover{background:#1b1530}
+.end{text-align:center;padding:26px;border:1px dashed var(--ac);border-radius:16px;background:#150f26}
+.end .em{font-size:38px}
+.trail{font-size:12px;color:var(--mut)}
+footer{border-top:1px solid var(--line);padding:30px 0;color:var(--mut);font-size:13px;text-align:center}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ac2);color:#04130a;padding:9px 20px;border-radius:99px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="logo" onclick="go('')"><i>🌿</i>Fork</div><div class="sp"></div>
+  <button class="link" onclick="go('')">Home</button>
+  <button class="link" onclick="go('');setTimeout(()=>$('stories')?.scrollIntoView(),50)">My stories</button>
+  <button class="pri" onclick="newStory()">+ New story</button>
+</div></nav>
+<div id="app"></div>
+<footer><div class="wrap">Fork · Interactive branching story builder · Your stories are saved in your browser</div></footer>
+<div id="toast">Saved</div>
+<script>
+const K='fork_stories_v2';
+const uid=()=>Math.random().toString(36).slice(2,8);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const go=h=>{location.hash=h?'#/'+h:'';if(!h)route()};
+let S=(()=>{try{const v=JSON.parse(localStorage.getItem(K));if(Array.isArray(v))return v}catch(e){}return []})();
+function persist(msg){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}if(msg)toast(msg)}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),1500)}
+const get=id=>S.find(s=>s.id===id);
+const blank=()=>{const n=uid();return {id:uid(),title:'Untitled story',author:'',published:false,start:n,updated:Date.now(),nodes:{[n]:{id:n,title:'Opening scene',text:'',end:false,choices:[]}}}};
+function newStory(){const s=blank();S.unshift(s);persist();go('edit/'+s.id)}
+function example(){
+  const s={id:uid(),title:'The Lost Lighthouse (example)',author:'',published:false,start:'a',updated:Date.now(),nodes:{
+  a:{id:'a',title:'The shore',text:'Fog rolls over the beach as you find an old lighthouse humming with a faint blue light. The door hangs open.',end:false,choices:[{text:'Climb the stairs',to:'b'},{text:'Walk around the base',to:'c'}]},
+  b:{id:'b',title:'The lamp room',text:'At the top, a glowing crystal floats where the lamp should be. It seems to call your name.',end:false,choices:[{text:'Touch the crystal',to:'d'},{text:'Run back down',to:'a'}]},
+  c:{id:'c',title:'The cellar',text:'Behind the rocks is a hatch leading to a tunnel full of old maps. One of them marks your hometown.',end:false,choices:[{text:'Take the map and leave',to:'e'}]},
+  d:{id:'d',title:'Ending: The Keeper',text:'Light floods the room. When it fades, you are the new keeper of the lighthouse.',end:true,choices:[]},
+  e:{id:'e',title:'Ending: The Traveller',text:'You roll up the map and set off down the coast. The next chapter begins on the road.',end:true,choices:[]}}};
+  S.unshift(s);persist();go('edit/'+s.id);
+}
+function delStory(id){if(confirm('Delete this story permanently?')){S=S.filter(s=>s.id!==id);persist('Deleted');route()}}
+const enc=s=>encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(s)))));
+const dec=h=>JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(h)))));
+const shareLink=s=>location.href.split('#')[0]+'#shared='+enc(s);
+function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Link copied')).catch(()=>prompt('Copy this link:',t))}
+
+/* ---------- Home ---------- */
+function home(){
+  const pub=S.filter(s=>s.published).length,nodes=S.reduce((a,s)=>a+Object.keys(s.nodes).length,0);
+  $('app').innerHTML=`
+  <div class="hero"><div class="wrap">
+    <span class="pill">✨ Interactive fiction, no code needed</span>
+    <h1>Write stories where <span class="grad">readers choose the path</span></h1>
+    <p>Build scenes, connect them with choices, publish, and share. Every decision leads somewhere new.</p>
+    <div class="row" style="justify-content:center">
+      <button class="pri big" onclick="newStory()">✍️ Start writing</button>
+      <button class="big" onclick="$('stories').scrollIntoView()">📚 Browse stories</button></div>
+    <div class="tree"><svg viewBox="0 0 520 190" fill="none" stroke-width="2">
+      <g stroke="#3b3b55"><path d="M260 38V74M260 74C260 98 130 90 130 118M260 74C260 98 390 90 390 118M130 148C130 168 70 160 70 175M130 148C130 168 190 160 190 175M390 148C390 168 330 160 330 175M390 148C390 168 450 160 450 175"/></g>
+      <g><rect x="215" y="8" width="90" height="30" rx="10" fill="#1b1530" stroke="#8b5cf6"/><text x="260" y="28" fill="#c4b5fd" font-size="13" text-anchor="middle" font-family="system-ui">Start</text>
+      <rect x="85" y="118" width="90" height="30" rx="10" fill="#14141c" stroke="#ec4899"/><text x="130" y="138" fill="#f9a8d4" font-size="13" text-anchor="middle" font-family="system-ui">Climb up</text>
+      <rect x="345" y="118" width="90" height="30" rx="10" fill="#14141c" stroke="#ec4899"/><text x="390" y="138" fill="#f9a8d4" font-size="13" text-anchor="middle" font-family="system-ui">Go around</text>
+      <circle cx="70" cy="178" r="9" fill="#22c55e"/><circle cx="190" cy="178" r="9" fill="#22c55e"/><circle cx="330" cy="178" r="9" fill="#22c55e"/><circle cx="450" cy="178" r="9" fill="#22c55e"/></g></svg></div>
+    <div class="stats"><div><b>${S.length}</b><span>Stories</span></div><div><b>${pub}</b><span>Published</span></div><div><b>${nodes}</b><span>Scenes written</span></div></div>
+  </div></div>
+
+  <section><div class="wrap">
+    <h2 class="t">How it works</h2><p class="sub">Three simple steps from idea to a story people can play.</p>
+    <div class="grid">
+      <div class="card hov"><div class="step">🧩</div><h3>1. Build nodes &amp; choices</h3><div class="mut">Write scenes and add choices that link to other scenes. Mark the ending scenes.</div></div>
+      <div class="card hov"><div class="step">🧭</div><h3>2. Readers pick their path</h3><div class="mut">Readers see one scene at a time, choose what happens next, go back, or restart.</div></div>
+      <div class="card hov"><div class="step">🚀</div><h3>3. Save &amp; publish</h3><div class="mut">Your work saves automatically. Hit Publish and share a link with anyone.</div></div>
+    </div></div></section>
+
+  <section id="stories" style="background:var(--bg2);border-block:1px solid var(--line)"><div class="wrap">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 class="t" style="margin:0">Your stories</h2>${S.length?'<button class="pri" onclick="newStory()">+ New story</button>':''}</div>
+    <p class="sub">Drafts stay private. Published stories can be read and shared.</p>
+    ${S.length?`<div class="grid">${S.map(s=>`<div class="card hov">
+      <div class="row" style="justify-content:space-between"><span class="tag ${s.published?'pub':''}">${s.published?'● Published':'Draft'}</span><span class="mut">${Object.keys(s.nodes).length} scenes</span></div>
+      <h3 style="margin-top:12px">${esc(s.title||'Untitled')}</h3><div class="mut">${s.author?'by '+esc(s.author):'No author yet'}</div>
+      <div class="row" style="margin-top:16px"><button onclick="go('edit/${s.id}')">✏️ Edit</button>
+      ${s.published?`<button class="ok" onclick="go('read/${s.id}')">▶ Read</button>`:''}
+      <button class="dan" onclick="delStory('${s.id}')">Delete</button></div></div>`).join('')}</div>`
+    :`<div class="empty"><div class="em">📖</div><h3 style="margin:10px 0 6px">No stories yet</h3><p class="mut" style="margin:0 0 20px">Your library is empty. Write your first branching story, or load a small example to see how it works.</p>
+      <div class="row" style="justify-content:center"><button class="pri big" onclick="newStory()">✍️ Create first story</button><button class="big" onclick="example()">Load an example draft</button></div></div>`}
+  </div></section>`;
+}
+
+/* ---------- Editor ---------- */
+let cur=null,sel=null;
+function editor(id){cur=get(id);if(!cur){go('');return}if(!cur.nodes[sel])sel=cur.start;drawEditor()}
+function drawEditor(){
+  const s=cur,n=s.nodes[sel];
+  const opts=v=>`<option value="">— choose destination —</option>`+Object.values(s.nodes).map(x=>`<option value="${x.id}" ${x.id===v?'selected':''}>${esc(x.title||'Untitled')}</option>`).join('');
+  $('app').innerHTML=`<div class="wrap" style="padding-top:26px;padding-bottom:50px">
+  <div class="row" style="justify-content:space-between"><h2 class="t" style="margin:0">Author editor</h2><span class="tag ${s.published?'pub':''}">${s.published?'● Published':'Draft'}</span></div>
+  <div class="row" style="margin-top:6px;align-items:flex-end"><div style="flex:2;min-width:220px"><label>Story title</label><input value="${esc(s.title)}" oninput="cur.title=this.value;autosave()"></div>
+  <div style="flex:1;min-width:180px"><label>Author</label><input value="${esc(s.author)}" oninput="cur.author=this.value;autosave()" placeholder="Your name"></div></div>
+  <div class="row" style="margin-top:16px">
+    <button class="pri" onclick="saveStory()">💾 Save</button>
+    <button class="${s.published?'ok':''}" onclick="togglePub()">${s.published?'✓ Published · click to unpublish':'🚀 Publish'}</button>
+    <button onclick="saveStory(true);go('read/${s.id}?preview')">▶ Preview</button>
+    ${s.published?`<button onclick="copy(shareLink(cur))">🔗 Copy share link</button>`:''}
+    <button onclick="check()">✔ Check story</button></div>
+  <div id="chk"></div>
+  <div class="ed">
+    <div><div class="row" style="justify-content:space-between;margin-bottom:10px"><b>Scenes</b><button onclick="addNode()">+ Scene</button></div>
+      <div class="nl">${Object.values(s.nodes).map(x=>`<div class="ni ${x.id===sel?'on':''}" onclick="sel='${x.id}';drawEditor()"><span>${x.id===s.start?'🏁 ':x.end?'🔚 ':''}${esc(x.title||'Untitled')}</span><small>${x.choices.length}↳</small></div>`).join('')}</div></div>
+    <div class="card">
+      <label style="margin-top:0">Scene title</label><input value="${esc(n.title)}" oninput="cur.nodes[sel].title=this.value;autosave()" onchange="drawEditor()">
+      <label>Story text</label><textarea oninput="cur.nodes[sel].text=this.value;autosave()" placeholder="What happens in this scene?">${esc(n.text)}</textarea>
+      <div class="row" style="margin-top:14px;gap:22px">
+        <label class="chk"><input type="checkbox" ${n.end?'checked':''} onchange="cur.nodes[sel].end=this.checked;drawEditor()"> This is an ending</label>
+        <label class="chk"><input type="radio" name="st" ${sel===s.start?'checked':''} onchange="cur.start=sel;drawEditor()"> Starting scene</label></div>
+      ${n.end?'':`<label>Choices</label>${n.choices.map((c,i)=>`<div class="ch">
+        <input value="${esc(c.text)}" placeholder="Choice text" oninput="cur.nodes[sel].choices[${i}].text=this.value;autosave()">
+        <select onchange="cur.nodes[sel].choices[${i}].to=this.value;autosave()">${opts(c.to)}</select>
+        <button class="dan" onclick="cur.nodes[sel].choices.splice(${i},1);drawEditor()">✕</button></div>`).join('')}
+        <div class="row"><button onclick="cur.nodes[sel].choices.push({text:'',to:''});drawEditor()">+ Add choice</button><button onclick="addLinked()">+ Choice with new scene</button></div>`}
+      <div style="margin-top:22px"><button class="dan" onclick="delNode()">Delete this scene</button></div>
+    </div></div></div>`;
+}
+let at;function autosave(){clearTimeout(at);at=setTimeout(()=>{cur.updated=Date.now();persist()},500)}
+function addNode(){const id=uid();cur.nodes[id]={id,title:'New scene',text:'',end:false,choices:[]};sel=id;persist();drawEditor()}
+function addLinked(){const id=uid();cur.nodes[id]={id,title:'New scene',text:'',end:false,choices:[]};cur.nodes[sel].choices.push({text:'New choice',to:id});persist();drawEditor()}
+function delNode(){
+  if(Object.keys(cur.nodes).length<2)return alert('A story needs at least one scene.');
+  if(!confirm('Delete this scene? Choices pointing to it will be cleared.'))return;
+  delete cur.nodes[sel];Object.values(cur.nodes).forEach(x=>x.choices.forEach(c=>{if(c.to===sel)c.to=''}));
+  if(cur.start===sel)cur.start=Object.keys(cur.nodes)[0];sel=cur.start;persist();drawEditor();
+}
+function problems(s){
+  const p=[],reach=new Set(),q=[s.start];
+  while(q.length){const id=q.pop();if(reach.has(id)||!s.nodes[id])continue;reach.add(id);s.nodes[id].choices.forEach(c=>c.to&&q.push(c.to))}
+  Object.values(s.nodes).forEach(n=>{
+    if(!reach.has(n.id))p.push(`“${n.title}” can’t be reached from the start.`);
+    if(!n.text.trim())p.push(`“${n.title}” has no story text.`);
+    n.choices.forEach(c=>{if(!c.text.trim()||!c.to)p.push(`“${n.title}” has an incomplete choice.`)});
+    if(!n.end&&!n.choices.length)p.push(`“${n.title}” is a dead end: add a choice or mark it as an ending.`);
+  });
+  if(!Object.values(s.nodes).some(n=>n.end))p.push('The story has no ending yet.');
+  return p;
+}
+function check(){const p=problems(cur);$('chk').innerHTML=p.length?`<div class="warn"><b>${p.length} thing(s) to fix:</b><br>${p.map(esc).join('<br>')}</div>`:`<div class="warn good">✓ Looks great. Every path leads somewhere.</div>`}
+function saveStory(q){cur.updated=Date.now();persist(q===true?null:'Saved ✓')}
+function togglePub(){
+  if(!cur.published){const p=problems(cur);if(p.length&&!confirm('Your story has issues:\n\n'+p.slice(0,5).join('\n')+'\n\nPublish anyway?'))return}
+  cur.published=!cur.published;saveStory(true);toast(cur.published?'Published! 🎉':'Unpublished');drawEditor();
+}
+
+/* ---------- Reader ---------- */
+let rs=null,path=[],preview=false;
+function reader(story,isPrev){rs=story;preview=isPrev;path=[story.start];drawReader()}
+function drawReader(){
+  const n=rs.nodes[path[path.length-1]];
+  if(!n){$('app').innerHTML='<div class="wrap"><div class="card" style="margin-top:30px">This story has a broken start.</div></div>';return}
+  const stop=n.end||!n.choices.length,ends=Object.values(rs.nodes).filter(x=>x.end).length;
+  const opts=n.choices.filter(c=>c.to&&rs.nodes[c.to]);
+  $('app').innerHTML=`<div class="wrap"><div class="reader">
+    <div class="row" style="justify-content:space-between"><div><b style="font-size:21px">${esc(rs.title)}</b><div class="mut">${rs.author?'by '+esc(rs.author):''}${preview?' · preview mode':''}</div></div>
+    <button onclick="${preview?`go('edit/${rs.id}')`:`go('')`}">${preview?'← Back to editor':'← Home'}</button></div>
+    <div class="bar"><i style="width:${stop?100:Math.min(92,path.length*14)}%"></i></div>
+    <div class="trail">Step ${path.length} · ${path.map(id=>esc(rs.nodes[id]?.title)).join(' › ')}</div>
+    <div class="scene"><h2>${esc(n.title)}</h2><div class="txt">${esc(n.text)}</div>
+    ${stop?`<div class="end"><div class="em">🏁</div><h3 style="margin:6px 0">The End</h3><div class="mut">You finished in ${path.length} step(s). This story has ${ends} ending(s). Can you find the others?</div>
+      <div class="row" style="justify-content:center;margin-top:16px"><button class="pri" onclick="restart()">↺ Read again</button></div></div>`
+    :opts.map(c=>`<button class="opt" onclick="pick('${c.to}')">→ ${esc(c.text)}</button>`).join('')}</div>
+    <div class="row" style="margin-top:16px">${path.length>1?`<button onclick="path.pop();drawReader()">← Go back</button><button onclick="restart()">↺ Restart</button>`:''}</div>
+  </div></div>`;
+  window.scrollTo(0,0);
+}
+const pick=id=>{path.push(id);drawReader()};
+const restart=()=>{path=[rs.start];drawReader()};
+
+/* ---------- Router ---------- */
+function route(){
+  const h=location.hash;
+  if(h.startsWith('#shared=')){try{reader(dec(h.slice(8)),false)}catch(e){$('app').innerHTML='<div class="wrap"><div class="card" style="margin-top:30px">This share link is invalid.</div></div>'}return}
+  const [p,idq]=h.replace('#/','').split('/'),id=(idq||'').split('?')[0];
+  if(p==='edit')return editor(id);
+  if(p==='read'){const s=get(id),pv=h.includes('?preview');if(!s||(!s.published&&!pv)){go('');return}return reader(s,pv)}
+  home();window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>
